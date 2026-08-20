@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>СУПЕРДЭП</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: radial-gradient(circle at 50% 20%, #2a0a35 0%, #12061c 60%, #05020a 100%);
+    color: #fff;
+    overflow: hidden;
+  }
+  #app {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100vh;
+  }
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    max-width: 480px;
+    padding: 30px;
+    animation: fadeIn .4s ease;
+  }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: scale(1); } }
+
+  h1.logo {
+    font-size: 3rem;
+    margin: 0 0 10px;
+    letter-spacing: 4px;
+    background: linear-gradient(90deg, #ffd700, #ff6a00, #ffd700);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 30px rgba(255, 165, 0, .4);
+  }
+  .subtitle { color: #b89ac7; margin-bottom: 40px; font-size: .95rem; }
+
+  button {
+    font-size: 1.2rem;
+    padding: 16px 42px;
+    margin: 10px;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(90deg, #ff8a00, #e52e71);
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(229, 46, 113, .4);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  button:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(229,46,113,.55); }
+  button:active { transform: translateY(1px) scale(.98); }
+  button.secondary {
+    background: rgba(255,255,255,.08);
+    box-shadow: none;
+    border: 1px solid rgba(255,255,255,.25);
+  }
+
+  .balance-box {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,215,0,.3);
+    border-radius: 16px;
+    padding: 20px 30px;
+    margin-bottom: 30px;
+  }
+  .balance-label { font-size: .8rem; color: #b89ac7; letter-spacing: 2px; text-transform: uppercase; }
+  .balance-value { font-size: 2.2rem; font-weight: bold; color: #ffd700; margin-top: 6px; }
+
+  .countdown-text { font-size: 1.1rem; color: #e8c9ff; margin-bottom: 20px; }
+  .countdown-num {
+    font-size: 7rem;
+    font-weight: 900;
+    color: #ff3860;
+    text-shadow: 0 0 40px rgba(255,56,96,.7);
+    animation: pulse .9s ease;
+  }
+  @keyframes pulse { 0% { transform: scale(1.6); opacity: 0; } 40% { opacity:1; } 100% { transform: scale(1); opacity: 1; } }
+
+  .success-check {
+    font-size: 5rem;
+    color: #2ecc71;
+    animation: pop .5s ease;
+  }
+  @keyframes pop { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+  .success-text { font-size: 1.8rem; margin-top: 10px; color: #2ecc71; font-weight: bold; }
+
+  /* Slot machine */
+  .machine {
+    background: linear-gradient(145deg, #3a1050, #1c0729);
+    border: 3px solid #ffd700;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 0 40px rgba(255,215,0,.25);
+  }
+  .reels {
+    display: flex;
+    gap: 10px;
+    background: #05020a;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+  .reel {
+    width: 70px; height: 70px;
+    background: #fff;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.4rem;
+    box-shadow: inset 0 0 10px rgba(0,0,0,.3);
+  }
+  .reel.spinning { animation: spin .1s linear infinite; }
+  @keyframes spin { from { transform: translateY(-4px); } to { transform: translateY(4px); } }
+
+  /* Lose overlay */
+  #lose-screen {
+    background: rgba(120,0,0,.35);
+  }
+  .lose-title {
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: #ff2b2b;
+    text-shadow: 0 0 20px rgba(255,0,0,.6);
+    line-height: 1.3;
+    margin-bottom: 10px;
+    animation: shake .5s;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-8px); }
+    80% { transform: translateX(8px); }
+  }
+  .lose-sub { color: #ffb3b3; margin-bottom: 30px; }
+
+  .footer-note {
+    position: fixed; bottom: 10px; width: 100%; text-align: center;
+    color: rgba(255,255,255,.25); font-size: .7rem;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- MAIN MENU -->
+  <div class="screen active" id="menu-screen">
+    <h1 class="logo">СУПЕРДЭП</h1>
+    <div class="subtitle">казино твоей мечты (и кошмара)</div>
+    <button onclick="showScreen('balance-screen')">Играть</button>
+  </div>
+
+  <!-- BALANCE / TOP UP -->
+  <div class="screen" id="balance-screen">
+    <h1 class="logo" style="font-size:2rem;">СУПЕРДЭП</h1>
+    <div class="balance-box">
+      <div class="balance-label">Баланс</div>
+      <div class="balance-value">0 ₽</div>
+    </div>
+    <button onclick="startCountdown()">Пополнить баланс</button>
+    <button class="secondary" onclick="showScreen('menu-screen')">Назад</button>
+  </div>
+
+  <!-- COUNTDOWN -->
+  <div class="screen" id="countdown-screen">
+    <div class="countdown-text">Списываем все деньги с карты...</div>
+    <div class="countdown-num" id="countdown-num">3</div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="screen" id="success-screen">
+    <div class="success-check">✅</div>
+    <div class="success-text">Успешно!</div>
+  </div>
+
+  <!-- SLOT MACHINE -->
+  <div class="screen" id="slots-screen">
+    <div class="balance-box">
+      <div class="balance-label">Баланс</div>
+      <div class="balance-value" id="slots-balance">127 430 ₽</div>
+    </div>
+    <div class="machine">
+      <div class="reels">
+        <div class="reel" id="reel1">🍒</div>
+        <div class="reel" id="reel2">🍋</div>
+        <div class="reel" id="reel3">💎</div>
+      </div>
+      <button id="spin-btn" onclick="spin()">Крутить</button>
+    </div>
+  </div>
+
+  <!-- LOSE SCREEN -->
+  <div class="screen" id="lose-screen">
+    <div class="lose-title">ВЫ ВСЕ ВЪЕБАЛИ,<br>ВЫ ЛОХ</div>
+    <div class="lose-sub">Баланс: 0 ₽</div>
+    <button onclick="resetGame()">Играть снова</button>
+  </div>
+
+  <div class="footer-note">СУПЕРДЭП — вымышленная игра. Реальные деньги не списываются.</div>
+
+</div>
+
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startCountdown() {
+  showScreen('countdown-screen');
+  const numEl = document.getElementById('countdown-num');
+  let n = 3;
+  numEl.textContent = n;
+  numEl.style.animation = 'none';
+  void numEl.offsetWidth;
+  numEl.style.animation = 'pulse .9s ease';
+
+  const interval = setInterval(() => {
+    n--;
+    if (n > 0) {
+      numEl.textContent = n;
+      numEl.style.animation = 'none';
+      void numEl.offsetWidth;
+      numEl.style.animation = 'pulse .9s ease';
+    } else {
+      clearInterval(interval);
+      showScreen('success-screen');
+      setTimeout(() => showScreen('slots-screen'), 1200);
+    }
+  }, 1000);
+}
+
+const symbols = ['🍒','🍋','💎','7️⃣','🍇','⭐'];
+
+function spin() {
+  const btn = document.getElementById('spin-btn');
+  btn.disabled = true;
+  const reels = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
+  reels.forEach(r => r.classList.add('spinning'));
+
+  const spinInterval = setInterval(() => {
+    reels.forEach(r => r.textContent = symbols[Math.floor(Math.random() * symbols.length)]);
+  }, 80);
+
+  setTimeout(() => {
+    clearInterval(spinInterval);
+    reels.forEach(r => {
+      r.classList.remove('spinning');
+      r.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    });
+    document.getElementById('slots-balance').textContent = '0 ₽';
+    setTimeout(() => {
+      showScreen('lose-screen');
+      btn.disabled = false;
+    }, 700);
+  }, 1600);
+}
+
+function resetGame() {
+  showScreen('menu-screen');
+}
+</script>
+
+</body>
+</html>
